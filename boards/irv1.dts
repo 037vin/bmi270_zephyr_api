@@ -1,0 +1,186 @@
+// Copyright (c) 2023 Nordic Semiconductor ASA
+// SPDX-License-Identifier: Apache-2.0
+
+/dts-v1/;
+#include <nordic/nrf52832_qfaa.dtsi>
+#include "irv1-pinctrl.dtsi"
+
+/ {
+	model = "irv1";
+	compatible = "sensorView,irv1";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+	};
+	vbatt {
+		compatible = "voltage-divider";
+		io-channels = <&adc 3>;
+		output-ohms = <1000>;
+		full-ohms = <(4700 + 1000)>;
+		/* power-gpios = <&gpio0 4 0>; */
+	 };
+
+	 dips {
+		compatible = "gpio-keys";
+		dip0: dip_0 {
+			gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
+		};
+		dip1: dip_1 {
+			gpios = <&gpio0 27 GPIO_ACTIVE_HIGH>;
+		};
+		dip2: dip_2 {
+			gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
+		};
+		dip3: dip_3 {
+			gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
+		};
+		dip4: dip_4 {
+			gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
+		};
+		dip5: dip_5 {
+			gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
+		};
+	 };
+	 leds {
+		compatible = "gpio-leds";
+		led0: led_0 {
+			gpios = <&gpio0 4 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>;
+			label = "Green LED 0";
+		};
+	};
+	/* pyd1598: pir0 {
+        compatible = "excelitas,pyd1598";
+		serial-in-gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
+        direct-link-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+        status = "okay";
+    }; */
+	
+	/* These aliases are provided for compatibility with samples */
+	aliases {
+		led0 = &led0;
+
+		dip0 = &dip0;
+		dip1 = &dip1;
+		dip2 = &dip2;
+		dip3 = &dip3;
+		dip4 = &dip4;
+		dip5 = &dip5;
+		
+		/* pir0 = &pyd1598; */
+
+		/* serin = &serin_gpio;
+		dlink = &dlink_gpio; */
+		bmi270-sensor = &bmi270;
+
+		lora0 = &lora0;
+		bootloader-led0 = &led0;
+		mcuboot-led0 = &led0;
+		watchdog0 = &wdt0;
+	};
+};
+&adc {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	channel@3 {
+		reg = <3>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN3>; // P0.05
+		zephyr,resolution = <12>;
+	};
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&spi1 {
+	status = "okay";
+	compatible = "nordic,nrf-spim";
+	 /* Cannot be used together with i2c0. spi0 */
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-names = "default", "sleep";
+	cs-gpios = < &gpio0 13 (GPIO_ACTIVE_LOW | GPIO_PUSH_PULL) >;  //check and change chip select pin
+	//cs-gpios = < &gpio0 26 (GPIO_ACTIVE_LOW | GPIO_PULL_UP) > original test board pin 26
+	anomaly-58-workaround;
+	//wakeup-source;
+
+	lora0: sx1262@0 {
+		reg = <0>;
+		compatible = "semtech,sx1262";
+		status = "okay";
+		spi-max-frequency = <DT_FREQ_K(125)>;
+
+		reset-gpios = <&gpio0 12 (GPIO_ACTIVE_LOW | GPIO_PULL_UP )>;
+		busy-gpios = < &gpio0 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN ) >;
+		dio1-gpios = < &gpio0 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN ) >;
+		//tx-enable-gpios = <&gpio0 17 GPIO_ACTIVE_LOW >;
+		//rx-enable-gpios = <&gpio0 19 GPIO_ACTIVE_LOW >;
+
+		//SW pin supplies RF switch power -> not required  for our rf switch
+		antenna-enable-gpios = < &gpio0 14 GPIO_ACTIVE_HIGH >; 
+		//enable the DIO2 pin on sx1262 -> we use tx and rx not dio2, could be used as an interrupt
+		dio2-tx-enable;  
+		
+		/* //When using a TCXO, currently using a standard crystal
+		dio3-tcxo-voltage = < 0x07 >; // SX126X_DIO3_TCXO_3V3 not available on Dorji
+		tcxo-power-startup-delay-ms = <5>; */
+		
+	};
+ };
+&i2c0 {
+    status = "okay";
+	compatible = "nordic,nrf-twi";
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-1 = <&i2c0_sleep>;
+	pinctrl-names = "default", "sleep";
+	/* zephyr,concat-buf-size = < 255 >;
+	zephyr,flash-buf-max-size = < 255 >;
+	clock-frequency = <100000>; */
+    bmi270: bmi270@68 {
+		compatible = "bosch,bmi270";
+        reg = <0x68>;
+		irq-gpios = <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
+					<&gpio0 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;	
+        friendly-name = "BMI270";
+    };
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0xc000>;
+		};
+		slot0_partition: partition@c000 {
+			label = "image-0";
+			reg = <0x0000C000 0x32000>;
+		};
+		slot1_partition: partition@3e000 {
+			label = "image-1";
+			reg = <0x0003E000 0x32000>;
+		};
+		scratch_partition: partition@70000 {
+			label = "image-scratch";
+			reg = <0x00070000 0xa000>;
+		};
+		storage_partition: partition@7a000 {
+			label = "storage";
+			reg = <0x0007a000 0x6000>;
+		};
+	};
+};
+

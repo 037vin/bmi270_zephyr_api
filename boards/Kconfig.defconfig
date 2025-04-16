@@ -1,0 +1,16 @@
+if BOARD_IRV1
+
+config BOARD
+	default "irv1"
+
+config LORA
+	default y
+
+config LORAMAC_NODE_CUSTOM
+	bool "Enable custom LoRaMAC node"
+	default y
+
+config BT_CTLR
+	default BT
+
+endif # BOARD_IRV1
