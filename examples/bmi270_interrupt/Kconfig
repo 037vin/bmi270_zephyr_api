@@ -1,0 +1,2 @@
+source "Kconfig.zephyr"
+rsource "/Users/vin/git/bmi270_zephyr_api/bmi270/Kconfig"

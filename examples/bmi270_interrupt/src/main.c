@@ -7,7 +7,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <stdio.h>
 #include "bmi270_api.h"
-#include <../../../../drivers/sensor/bmi270/bmi270.h>
+#include </Users/vin/git/bmi270_zephyr_api/bmi270/bmi270.h>
 
 struct bmi270_feature_reg bmi270_feature_reg_anymo_1 = {
 	.page = 1,
@@ -69,7 +69,7 @@ void nomo_trigger_handler(const struct device *dev,
 		   acc[0].val1, acc[0].val2, acc[1].val1, acc[1].val2, acc[2].val1, acc[2].val2);
 }
 
-void main(void)
+int main(void)
 {
 	struct sensor_trigger anymo_trig;
 	// struct sensor_trigger nomo_trig;

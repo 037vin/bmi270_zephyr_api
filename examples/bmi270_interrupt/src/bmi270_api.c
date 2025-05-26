@@ -9,7 +9,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <stdio.h>
 #include "bmi270_api.h"
-#include <../../../../drivers/sensor/bmi270/bmi270.h>
+#include </Users/vin/git/bmi270_zephyr_api/bmi270/bmi270.h>
 
 static int8_t get_aux_interface_config_custom(struct bmi2_aux_config *config, const struct device *dev);
 static int8_t reset_fifo_frame_structure_custom(struct bmi2_fifo_frame *fifo, const struct device *dev, uint64_t sens_en_stat);
@@ -138,7 +138,7 @@ void bmi270_config_anymotion_interrupt(const struct device *const bmi270_dev, ui
 	}
 }
 
-void bmi270_config_nomotion_interrupt(const struct device *const bmi270_dev, uint16_t threshold, uint16_t duration)
+/* void bmi270_config_nomotion_interrupt(const struct device *const bmi270_dev, uint16_t threshold, uint16_t duration)
 {
 	int rc;
 	struct sensor_value Threshold, Duration;
@@ -162,7 +162,7 @@ void bmi270_config_nomotion_interrupt(const struct device *const bmi270_dev, uin
 		printf("ACCEL slope duration attr set failed: %d\n", rc);
 		return;
 	}
-}
+} */
 
 void bmi270_set_anymotion_trigger(const struct device *const bmi270_dev, sensor_trigger_handler_t trigger_handler, struct sensor_trigger *trig)
 {
@@ -178,7 +178,7 @@ void bmi270_set_anymotion_trigger(const struct device *const bmi270_dev, sensor_
 	printk("Trigger set got %d\n", rc);
 }
 
-void bmi270_set_nomotion_trigger(const struct device *const bmi270_dev, sensor_trigger_handler_t trigger_handler, struct sensor_trigger *trig)
+/* void bmi270_set_nomotion_trigger(const struct device *const bmi270_dev, sensor_trigger_handler_t trigger_handler, struct sensor_trigger *trig)
 {
 	int rc;
 	trig->chan = SENSOR_CHAN_ACCEL_XYZ;
@@ -190,7 +190,7 @@ void bmi270_set_nomotion_trigger(const struct device *const bmi270_dev, sensor_t
 		return;
 	}
 	printk("Trigger set got %d\n", rc);
-}
+} */
 
 void gpio_init_manual(const struct gpio_dt_spec *spec)
 {
